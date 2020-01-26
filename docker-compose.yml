@@ -1,0 +1,57 @@
+version: '3.5'
+
+services:
+  php-apache:
+    build:
+      context: ./build/php-apache
+    container_name: php-apache
+    ports:
+      - 80:80
+    volumes:
+      - ./webroot:/var/www/html:z
+    links:
+      - 'mariadb'
+    networks:
+      backend:
+        aliases:
+          - php-apache
+
+  mariadb:
+    image: mariadb:10.1
+    container_name: mariadb
+    volumes:
+      - ./dbdata:/var/lib/mysql
+    environment:
+      TZ: "Asia/Jakarta"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+      MYSQL_ROOT_PASSWORD: "rootpwd"
+      MYSQL_USER: 'testuser'
+      MYSQL_PASSWORD: 'testpassword'
+      MYSQL_DATABASE: 'testdb'
+    networks:
+      backend:
+        aliases:
+          - mariadb
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    links:
+      - mariadb
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+    ports:
+      - '8080:80'
+    networks:
+      backend:
+        aliases:
+          - phpmyadmin
+
+networks:
+  backend:
+    name: simple-damp
+
+volumes:
+  dbdata:
+  webroot:
